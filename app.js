@@ -4,7 +4,7 @@ var app = express();
 
 var mongoose = require('mongoose');
 
-mongoose.connect("mongodb://test:dadmin01@ds127892.mlab.com:27892/rebita");
+mongoose.connect(process.env.MONGO_DB);
 
 var db = mongoose.connection;
 db.once("open",function(){
@@ -35,21 +35,42 @@ app.use(express.static(path.join(__dirname,'public')));
 
 var data={count:0};
 app.get('/',function(req,res){
-  data.count++;
-  res.render('my_first_ejs',data);
+  setCounter(res,data.count++);
 });
+
 app.get('/reset',function(req,res){
-  data.count=0;
-  res.render('my_first_ejs',data);
+  setCounter(res,0);
 });
+
 app.get('/set/count',function(req,res){
-  if(req.query.count) data.count=req.query.count;
-  res.render('my_first_ejs',data);
+  if(req.query.count) setCounter(res,req.query.count);
+  else getCounter(res);
 });
+
 app.get('/set/:num',function(req,res){
-  data.count=req.params.num;
-  res.render('my_first_ejs',data);
+  if(req.params.num) setCounter(res,req.params.num);
+  else getCounter(res);
 });
+
+function setCounter(res,num){
+  console.log("setCounter");
+  Data.findOne({name:"myData"},function(err,data){
+    if(err) return console.log("Data ERROR:",err);
+    data.count=num;
+    data.save(function(err){
+      if(err) return console.log("Data ERROR",err);
+      res.render('my_first_ejs',data);
+    });
+  });
+}
+
+function getCounter(res){
+  console.log("getCounter");
+  Data.findOne({name:"myData"},function(err,data){
+    if(err) return console.log("Data ERROR:",err);
+    res.render('my_first_ejs',data);
+  });
+}
 
 app.listen(3000,function (){
   console.log('Server On!');
