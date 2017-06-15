@@ -14,6 +14,22 @@ db.on("error",function(err){
     console.log("DB ERROR : ",err);
 });
 
+var dataSchema = mongoose.Schema({
+  name:String,
+  count:Number
+});
+
+var Data = mongoose.model('data',dataSchema);
+Data.findOne({name:"myData"},function(err,data){
+  if(err) return console.log("Data ERROR:",err);
+  if(!data){
+    Data.create({name:"myData",count:0},function(err,data){
+      if(err) return console.log("Data ERROR:",err);
+      console.log("Counter initialized : ",data);
+    });
+  }
+});
+
 app.set("view engine",'ejs');
 app.use(express.static(path.join(__dirname,'public')));
 
